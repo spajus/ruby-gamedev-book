@@ -1,3 +1,4 @@
 01_intro.md
 02_why_ruby.md
 03_what_you_should_know.md
+04_what_are_we_building.md

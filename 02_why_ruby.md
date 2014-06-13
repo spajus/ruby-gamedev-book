@@ -5,12 +5,12 @@ statically typed language that compiles down to bare metal instructions. Or that
 a full blown game development platform like Unity. Slow, dynamic languages like Ruby seem like the
 last choice any sane game developer would go for.
 
-A friend of mine said "There's little reason to develop a desktop game with Ruby", and he was
-absolutely right. Perhaps this is the reason why there are no books about it. All the casual game
-action happens in mobile devices, and desktop games are for seasoned gamers who demand fast and
-detailed 3D graphics, motion-captured animations and sophisticated game mechanics - things we know
-we are not going to be able to build on our own, without millions from VC pockets and Hollywood
-grade equipment.
+A friend of mine [said](https://twitter.com/mmozuras/status/476240137199054848) "There's little
+reason to develop a desktop game with Ruby", and he was absolutely right. Perhaps this is the
+reason why there are no books about it. All the casual game action happens in mobile devices, and
+desktop games are for seasoned gamers who demand fast and detailed 3D graphics, motion-captured
+animations and sophisticated game mechanics - things we know we are not going to be able to build
+on our own, without millions from VC pockets and Hollywood grade equipment.
 
 Now, bear with me. Your game will not be a 3D MMORPG set in huge, photo realistic
 representation of Middle-earth. Let's leave those things to Bethesda, Ubisoft and Rockstar Games.

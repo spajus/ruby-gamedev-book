@@ -1,6 +1,6 @@
 # What You Should Know Before Reading This Book
 
-As you can read on the cover, this book is dedicated "for those who write code for living". It's
+As you can read on the cover, this book is "for those who write code for living". It's
 not a requirement, and you will most likely be able to understand everything even if you are a
 student or hobbyist, but this book will not teach you how to be a good programmer. If you want to
 learn that, start with timeless classic: [The Pragmatic Programmer: From Journeyman to

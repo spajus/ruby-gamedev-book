@@ -16,7 +16,7 @@ Now, bear with me. Your game will not be a 3D MMORPG set in huge, photo realisti
 representation of Middle-earth. Let's leave those things to Bethesda, Ubisoft and Rockstar Games.
 After all, everyone has to start somewhere, and you have to be smart enough to understand, that
 even though that little boy in you wants to create an improved version of Grand Theft Auto V, we
-will have to go for something that resembles the lesser known Super Nintendo titles instead.
+will have to go for something that resembles lesser known Super Nintendo titles instead.
 
 Why not go mobile then? Those devices seem perfect for simpler games. If you are a true gamer at
 heart, you will agree that touch screen games you find in modern phones and tablets are only good

@@ -2,8 +2,8 @@
 
 When it comes to game development, everyone will tell you that you should go with C++ or some other
 statically typed language that compiles down to bare metal instructions. Or that you should go with
-a full blown game development platform like Unity. Slow, dynamic languages like Ruby seem like the
-last choice any sane game developer would go for.
+full blown game development platform like [Unity](http://unity3d.com/). Slow, dynamic languages
+like Ruby seem like the last choice any sane game developer would go for.
 
 A friend of mine [said](https://twitter.com/mmozuras/status/476240137199054848) "There's little
 reason to develop a desktop game with Ruby", and he was absolutely right. Perhaps this is the

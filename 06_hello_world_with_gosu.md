@@ -21,7 +21,7 @@ find in [Gosu Wiki](https://github.com/jlnr/gosu/wiki).
 
 Run the code:
 
-{lang="console"}
+{lang="console",line-numbers="off"}
 ~~~~~~~~
 $ ruby 01-hello/hello_world.rb
 ~~~~~~~~

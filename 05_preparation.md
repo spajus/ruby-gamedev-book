@@ -60,7 +60,7 @@ Clone it to a convenient location:
 {lang="console",line-numbers="off"}
 ~~~~~~~~
 $ cd ~/gamedev
-git clone git@github.com:spajus/ruby-gamedev-book-examples.git
+$ git clone git@github.com:spajus/ruby-gamedev-book-examples.git
 ~~~~~~~~
 
 Complete source code for the game that was built while writing this book is also available on

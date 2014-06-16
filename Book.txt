@@ -4,3 +4,4 @@
 04_what_are_we_building.md
 05_preparation.md
 06_hello_world_with_gosu.md
+07_hello_animation.md

@@ -98,5 +98,3 @@ Here is a screenshot of `top` displaying two versions of this program. Second sc
 ![Redrawing only when necessary VS redrawing every time](images/04-saving-resources.png)
 
 Ruby is slow, so you have to use it wisely.
-
-TO BE CONTINUED

@@ -49,3 +49,19 @@ TODO
 ## Windows
 
 TODO
+
+# Getting The Sample Code
+
+You can find sample code at GitHub:
+[https://github.com/spajus/ruby-gamedev-book-examples](https://github.com/spajus/ruby-gamedev-book-examples).
+
+Clone it to a convenient location:
+
+{lang="console",line-numbers="off"}
+~~~~~~~~
+$ cd ~/gamedev
+git clone git@github.com:spajus/ruby-gamedev-book-examples.git
+~~~~~~~~
+
+Complete source code for the game that was built while writing this book is also available on
+GitHub. TODO add links when they are available.

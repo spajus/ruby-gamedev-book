@@ -65,3 +65,17 @@ $ git clone git@github.com:spajus/ruby-gamedev-book-examples.git
 
 Complete source code for the game that was built while writing this book is also available on
 GitHub. TODO add links when they are available.
+
+# Other Tools
+
+All you need for this adventure is a good text editor, terminal and probably some graphics editor.
+Try [GIMP](http://www.gimp.org/) if you want a free one. I'm using
+[Pixelmator](http://www.pixelmator.com/), it's wonderful, but for Mac only. A noteworthy fact is
+that Pixelmator was built by fellow Lithuanians.
+
+When it comes to editors, I don't leave home without Vim, but as long as what you use makes you
+productive, it doesn't make any difference. Vim, Emacs or Sublime are all good enough to write
+code, just have some good plugins that support Ruby, and you're set. If you really feel you need
+an IDE, which may be the case if you are coming from a static language, you can't go wrong with
+[RubyMine](http://www.jetbrains.com/ruby/).
+

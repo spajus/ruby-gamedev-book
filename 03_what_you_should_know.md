@@ -6,7 +6,7 @@ student or hobbyist, but this book will not teach you how to be a good programme
 learn that, start with timeless classic: [The Pragmatic Programmer: From Journeyman to
 Master](https://www.goodreads.com/book/show/4099.The_Pragmatic_Programmer).
 
-This book will also not teach you the basics of Ruby. There are plenty of books and resources
+You should understand Ruby quite well. There are plenty of books and resources
 covering that subject. Try
 [Why's Poignant Guide To Ruby](http://mislav.uniqpath.com/poignant-guide/) or
 [Eloquent Ruby](https://www.goodreads.com/book/show/9364729-eloquent-ruby). You can also learn it

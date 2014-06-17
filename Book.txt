@@ -5,3 +5,4 @@
 05_preparation.md
 06_hello_world_with_gosu.md
 07_hello_animation.md
+08_hello_sound.md

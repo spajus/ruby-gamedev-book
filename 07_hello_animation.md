@@ -33,23 +33,27 @@ it is easy to tell that there are 64 tiles `128x128` pixels each. So, `@animatio
 `@animation[63]` - the bottom-right one.
 
 Gosu doesn't handle animation, it's something you have full control over. We have to draw each tile
-in a sequence ourselves. The logic behind this is pretty simple:
+in a sequence ourselves. You can also use tiles to hold map graphics The logic behind this is pretty simple:
 
 1. `Explosion` knows it's `@current_frame` number. It begins with 0.
 2. `Explosion#frame_expired?` checks the last time when `@current_frame` was rendered, and when it
 is older than `Explosion::FRAME_DELAY` milliseconds, `@current_frame` is increased.
-2.  When [`GameWindow#update`](http://www.libgosu.org/rdoc/Gosu/Window.html#update-instance_method)
+3.  When [`GameWindow#update`](http://www.libgosu.org/rdoc/Gosu/Window.html#update-instance_method)
 is called, `@current_frame` is recalculated for all `@explosions`. Also, explosions that have
 finished their animation (displayed the last frame) are removed from `@explosions` array.
-3. [`GameWindow#draw`](http://www.libgosu.org/rdoc/Gosu/Window.html#draw-instance_method) draws
+4. [`GameWindow#draw`](http://www.libgosu.org/rdoc/Gosu/Window.html#draw-instance_method) draws
 background image and all `@explosions` draw their `current_frame`.
-4. Again, we are saving resources and not redrawing when there are no `@explosions` in progress.
+5. Again, we are saving resources and not redrawing when there are no `@explosions` in progress.
 `needs_redraw?` handles it.
 
 It is important to understand that `update` and `draw` order is unpredictable, these methods can be
 called by your system at different rate, you can't tell which one will be called more often than
 the other one, so `update` should only be concerned with advancing object state, and `draw` should
-only draw current state on screen if it is needed.
+only draw current state on screen if it is needed. The only reliable thing here is time, consult
+[`Gosu.milliseconds`](http://www.libgosu.org/rdoc/Gosu.html#milliseconds-class_method) to know how
+much time have passed.
 
 Rule of the thumb: `draw` should be as lightweight as possible. Prepare all calculations in
 `update` and you will have responsive, smooth graphics.
+
+

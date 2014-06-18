@@ -106,8 +106,35 @@ Run it, then press spacebar to refill the screen with random tiles.
 $ ruby 02-warmup/random_map.rb
 ~~~~~~~~
 
-The result doesn't look seamless, so we will have to figure out what's wrong:
-
 ![Map filled with random tiles](images/08-random-map.png)
+
+The result doesn't look seamless, so we will have to figure out what's wrong. After playing around
+for a while, I've noticed that it's an issue with `Gosu::Image`.
+
+When you load a tile like this, it works perfectly:
+
+{line-numbers="off"}
+~~~~~~~~
+Gosu::Image.new(self, image_path, true, 0, 0, 128, 128)
+Gosu::Image.load_tiles(self, image_path, 128, 128, true)
+~~~~~~~~
+
+And the following produces so called "texture bleeding":
+
+{line-numbers="off"}
+~~~~~~~~
+Gosu::Image.new(self, image_path, true)
+Gosu::Image.new(self, image_path, true).subimage(0, 0, 128, 128)
+~~~~~~~~
+
+Good thing we're not building our game yet, right? Welcome to the intricacies of software
+development!
+
+Now, I [have reported my findings](https://github.com/jlnr/gosu/issues/227), but until it gets
+fixed, we need a workaround. And the workaround was to use RMagick. I knew we won't get too far
+away from it. But our random map now looks gorgeous:
+
+![Map filled with *seamless* random tiles](images/09-random-map-seamless.png)
+
 
 

@@ -10,7 +10,9 @@ prototype of top-down view game map using the tileset of our choice. This [groun
 tileset](http://opengameart.org/content/ground-tileset-grass-sand) looks like a good place to
 start.
 
-However, after downloading and extracting the tileset, it's obvious that
+### Integrating With Texture Packer
+
+After downloading and extracting the tileset, it's obvious that
 [`Gosu::Image#load_tiles`](http://www.libgosu.org/rdoc/Gosu/Image.html#load_tiles-class_method)
 will not suffice, since it only supports tiles of same size, and there is a tileset in the package
 that looks like this:
@@ -64,21 +66,48 @@ do the same in such a situation. The gem is available on GitHub:
 
 [https://github.com/spajus/gosu-texture-packer](https://github.com/spajus/gosu-texture-packer)
 
-You can install this gem using `gem install gosu_texture_packer`. If you want to examine the code, easiest way is to clone it on your computer:
+You can install this gem using `gem install gosu_texture_packer`. If you want to examine the code,
+easiest way is to clone it on your computer:
 
 {lang="console",line-numbers="off"}
 ~~~~~~~~
 $ git clone
 ~~~~~~~~
 
-Let's examine the main idea behind this gem. it is included in code samples. It's core class is
-less than 50 lines of code, Got to love Ruby for that.
+Let's examine the main idea behind this gem. Here is a slightly simplified version that does
+handles everything in under 20 lines of code:
 
 <<[02-warmup/tileset.rb](code/02-warmup/tileset.rb)
 
+If by now you are familiar with [Gosu documentation](http://www.libgosu.org/rdoc/), you will wonder
+what the hell is
+[`Gosu::Image#subimage`](https://github.com/jlnr/gosu/blob/0c1a155dcb9034b345d7cfe41b0b86f39f57f540/ext/gosu/gosu.swg#L553-L558). At the point of writing it was not documented, and I
+accidentally [discovered
+it](https://github.com/jlnr/gosu/blob/master/feature_tests/image_subimage.rb#L25) while digging
+through Gosu source code.
 
+I'm lucky this function existed, because I was ready to bring out the heavy artillery and use
+[RMagick](https://github.com/rmagick/rmagick) to extract those tiles. We will probably need RMagick
+at some point of time later, but it's better to avoid dependencies as long as possible.
 
+### Combining Tiles Into A Map
 
+With tileset loading issue out of the way, we can finally get back to drawing that cool map of
+ours.
 
+The following program will fill the screen with random tiles.
+
+<<[02-warmup/random_map.rb](code/02-warmup/random_map.rb)
+
+Run it, then press spacebar to refill the screen with random tiles.
+
+{lang="console",line-numbers="off"}
+~~~~~~~~
+$ ruby 02-warmup/random_map.rb
+~~~~~~~~
+
+The result doesn't look seamless, so we will have to figure out what's wrong:
+
+![Map filled with random tiles](images/08-random-map.png)
 
 

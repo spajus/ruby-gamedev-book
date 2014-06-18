@@ -6,3 +6,4 @@
 06_hello_world_with_gosu.md
 07_hello_animation.md
 08_hello_sound.md
+09_warming_up.md

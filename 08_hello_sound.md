@@ -14,6 +14,7 @@ $ ruby 01-hello/hello_sound.rb
 
 We only added couple of things over previous example.
 
+{starting-line-number="72"}
 ~~~~~~~~
 @music = Gosu::Song.new(
   self, media_path('menu_music.mp3'))
@@ -25,6 +26,7 @@ We only added couple of things over previous example.
 [`Gosu::Song`](http://www.libgosu.org/rdoc/Gosu/Song.html) with `menu_music.mp3`, adjusts the
 volume so it's a little more quiet and starts playing in a loop.
 
+{starting-line-number="16"}
 ~~~~~~~~
 def self.load_sound(window)
   Gosu::Sample.new(

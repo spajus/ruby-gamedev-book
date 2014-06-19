@@ -136,5 +136,33 @@ away from it. But our random map now looks gorgeous:
 
 ![Map filled with *seamless* random tiles](images/09-random-map-seamless.png)
 
+### Using Tiled To Create Maps
+
+While low level approach to drawing tiles in screen may be appropriate in some scenarios, like
+randomly generated maps, we will explore another alternatives. One of them is this great, open
+source, cross platform, generic tile map editor called [Tiled](http://www.mapeditor.org/).
+
+It has some limitations, for instance, all tiles in tileset have to be of same proportions. On the
+upside, it would be easy to load Tiled tilesets with
+[`Gosu::Image#load_tiles`](http://www.libgosu.org/rdoc/Gosu/Image.html#load_tiles-class_method).
+
+![Tiled](images/10-tiled.png)
+
+Tiled uses it's own custom, XML based `tmx` format for saving maps. It also allows exporting maps
+to JSON, which is way more convenient. Let's see how that JSON looks like:
+
+{lang="json"}
+<<[02-warmup/tiled_map.json](code/02-warmup/tiled_map.json)
+
+We can see there are following things listed here:
+
+- Two different tilesets, "ground" and "water"
+- Map width and height in tile count (10x10)
+- Layers with data array contains tile numbers
+
+This doesn't look too difficult to parse, so we're going to implement a loader for Tiled. And make
+it open source, of course.
+
+TO BE CONTINUED
 
 

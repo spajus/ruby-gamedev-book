@@ -3,3 +3,5 @@
 03_what_you_should_know.md
 04_what_are_we_building.md
 06_hello_world_with_gosu.md
+07_hello_animation.md
+08_hello_sound.md

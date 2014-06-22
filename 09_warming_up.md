@@ -205,22 +205,26 @@ The result is quite satisfying, and it scrolls smoothly without any optimization
 In some cases random generated maps make all the difference. Worms and Diablo would probably be
 just average games if it wasn't for those always unique, procedurally generated maps.
 
-We will try to make a very primitive map generator ourselves.
-To begin with, we will be using only 3 different tiles - water, sand and grass. That is because
-for implementing edges, your generator must be aware of available tilesets and know
-how to combine them in valid ways. We could come back to it, but for now, let's keep things simple.
+We will try to make a very primitive map generator ourselves.  To begin with, we will be using only
+3 different tiles - water, sand and grass. For implementing fully tiled edges, the generator must
+be aware of available tilesets and know how to combine them in valid ways. We may come back to
+it, but for now let's keep things simple.
 
-Now, generating naturally looking randomness is something worth a book of it's own, so instead of
-trying to poorly reinvent what other people have done already, we will use a well known algorithm
-perfectly suited for this task - [Perlin noise](http://en.wikipedia.org/wiki/Perlin_noise).
+Now, generating naturally looking randomness is something worth having a book of it's own, so
+instead of trying to poorly reinvent what other people have already done, we will use a well known
+algorithm perfectly suited for this task -
+[Perlin noise](http://en.wikipedia.org/wiki/Perlin_noise).
 
 If you have ever used Photoshop's Cloud filter, you already know how Perlin noise looks like:
 
 ![Perlin noise](images/12-perlin-noise.png)
 
-Now, we could implement the algorithm  ourselves, but there is
-[perlin_noise](https://github.com/junegunn/perlin_noise) gem already available, so we will simply
-use it.
+Now, we could implement the algorithm ourselves, but there is
+[perlin_noise](https://github.com/junegunn/perlin_noise) gem already available, it looks pretty
+solid, so we will use it.
+
+The following program generates `100x100` map with 30% chance of water, 15% chance of sand and 55%
+chance of grass:
 
 <<[02-warmup/perlin_noise_map.rb](code/02-warmup/perlin_noise_map.rb)
 

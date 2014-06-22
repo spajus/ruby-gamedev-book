@@ -149,20 +149,148 @@ upside, it would be easy to load Tiled tilesets with
 ![Tiled](images/10-tiled.png)
 
 Tiled uses it's own custom, XML based `tmx` format for saving maps. It also allows exporting maps
-to JSON, which is way more convenient. Let's see how that JSON looks like:
+to JSON, which is way more convenient, since parsing XML in Ruby is usually done with
+[Nokogiri](http://nokogiri.org/), which is heavier and it's native extensions usually cause more
+trouble than ones JSON parser uses. So, let's see how that JSON looks like:
 
 {lang="json"}
 <<[02-warmup/tiled_map.json](code/02-warmup/tiled_map.json)
 
-We can see there are following things listed here:
+There are following things listed here:
 
 - Two different tilesets, "ground" and "water"
 - Map width and height in tile count (10x10)
 - Layers with data array contains tile numbers
 
-This doesn't look too difficult to parse, so we're going to implement a loader for Tiled. And make
-it open source, of course.
+Couple of extra things that Tiled maps can have:
 
-TO BE CONTINUED
+- Object layers containing lists of objects with their coordinates
+- Properties hash on tiles and objects
+
+This doesn't look too difficult to parse, so we're going to implement a loader for Tiled maps.
+And make it open source, of course.
+
+### Loading Tiled Maps With Gosu
+
+Probably the easiest way to load Tiled map is to take each layer and render it on screen, tile by
+tile, like a cake. We will not care about caching at this point, and the only optimization would be
+not drawing things that are out of screen boundaries.
+
+After couple of days of test driven development, I've ended up writing
+[gosu_tiled](https://github.com/spajus/gosu-tiled) gem, that allows you to load Tiled maps with
+just a few lines of code.
+
+I will not go through describing the implementation, but if you want to examine the thought
+process, take a look at `gosu_tiled` gem's
+[git commit history](https://github.com/spajus/gosu-tiled/commits/master).
+
+To use the gem, do `gem install gosu_tiled` and examine the code that shows a map of the island
+that you can scroll around with arrow keys:
+
+<<[02-warmup/island.rb](code/02-warmup/island.rb)
+
+Run it, use arrow keys to scroll the map.
+
+{lang="console",line-numbers="off"}
+~~~~~~~~
+$ ruby 02-warmup/island.rb
+~~~~~~~~
+
+The result is quite satisfying, and it scrolls smoothly without any optimizations:
+
+![Exploring Tiled map in Gosu](images/11-gosu-tiled.png)
+
+### Generating Random Map With Perlin Noise
+
+In some cases random generated maps make all the difference. Worms and Diablo would probably be
+just average games if it wasn't for those always unique, procedurally generated maps.
+
+We will try to make a very primitive map generator ourselves.
+To begin with, we will be using only 3 different tiles - water, sand and grass. That is because
+for implementing edges, your generator must be aware of available tilesets and know
+how to combine them in valid ways. We could come back to it, but for now, let's keep things simple.
+
+Now, generating naturally looking randomness is something worth a book of it's own, so instead of
+trying to poorly reinvent what other people have done already, we will use a well known algorithm
+perfectly suited for this task - [Perlin noise](http://en.wikipedia.org/wiki/Perlin_noise).
+
+If you have ever used Photoshop's Cloud filter, you already know how Perlin noise looks like:
+
+![Perlin noise](images/12-perlin-noise.png)
+
+Now, we could implement the algorithm  ourselves, but there is
+[perlin_noise](https://github.com/junegunn/perlin_noise) gem already available, so we will simply
+use it.
+
+<<[02-warmup/perlin_noise_map.rb](code/02-warmup/perlin_noise_map.rb)
+
+Run the program, zoom with up / down arrows and regenerate everything with spacebar.
+
+{lang="console",line-numbers="off"}
+~~~~~~~~
+$ ruby 02-warmup/perlin_noise_map.rb
+~~~~~~~~
+
+![Map generated with Perlin noise](images/13-perlin-noise-map.png)
+
+This is a little longer than our previous examples, so we will analyze some parts to make it clear.
+
+{starting-line-number=81}
+~~~~~~~~
+def generate_map
+  noises = Perlin::Noise.new(2)
+  contrast = Perlin::Curve.contrast(
+    Perlin::Curve::CUBIC, 2)
+  map = {}
+  MAP_WIDTH.times do |x|
+    map[x] = {}
+    MAP_HEIGHT.times do |y|
+      n = noises[x * 0.1, y * 0.1]
+      n = contrast.call(n)
+      map[x][y] = choose_tile(n)
+    end
+  end
+  map
+end
+~~~~~~~~
+
+`generate_map` is the heart of this program. It creates two dimensional `Perlin::Noise` generator,
+then chooses a random tile for each location of the map, according to noise value. To make the map
+a little sharper, cubic contrast is applied to noise value before choosing the tile. Try commenting
+out contrast application - it will look like a boring golf course, since noise values will keep
+buzzing around the middle.
+
+{starting-line-number=97}
+~~~~~~~~
+def choose_tile(val)
+  case val
+  when 0.0..0.3 # 30% chance
+    @water
+  when 0.3..0.45 # 15% chance, water edges
+    @sand
+  else # 55% chance
+    @grass
+  end
+end
+~~~~~~~~
+
+Here we could go crazy if we had more different tiles to use. We could add deep waters at
+`0.0..0.1`, mountains at `0.9..0.95` and snow caps at `0.95..1.0`. And all this would have
+beautiful transitions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

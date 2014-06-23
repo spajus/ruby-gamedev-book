@@ -10,7 +10,7 @@ prototype of top-down view game map using the tileset of our choice. This [groun
 tileset](http://opengameart.org/content/ground-tileset-grass-sand) looks like a good place to
 start.
 
-### Integrating With Texture Packer
+## Integrating With Texture Packer
 
 After downloading and extracting the tileset, it's obvious that
 [`Gosu::Image#load_tiles`](http://www.libgosu.org/rdoc/Gosu/Image.html#load_tiles-class_method)
@@ -90,7 +90,7 @@ I'm lucky this function existed, because I was ready to bring out the heavy arti
 [RMagick](https://github.com/rmagick/rmagick) to extract those tiles. We will probably need RMagick
 at some point of time later, but it's better to avoid dependencies as long as possible.
 
-### Combining Tiles Into A Map
+## Combining Tiles Into A Map
 
 With tileset loading issue out of the way, we can finally get back to drawing that cool map of
 ours.
@@ -136,7 +136,7 @@ away from it. But our random map now looks gorgeous:
 
 ![Map filled with *seamless* random tiles](images/09-random-map-seamless.png)
 
-### Using Tiled To Create Maps
+## Using Tiled To Create Maps
 
 While low level approach to drawing tiles in screen may be appropriate in some scenarios, like
 randomly generated maps, we will explore another alternatives. One of them is this great, open
@@ -170,7 +170,7 @@ Couple of extra things that Tiled maps can have:
 This doesn't look too difficult to parse, so we're going to implement a loader for Tiled maps.
 And make it open source, of course.
 
-### Loading Tiled Maps With Gosu
+## Loading Tiled Maps With Gosu
 
 Probably the easiest way to load Tiled map is to take each layer and render it on screen, tile by
 tile, like a cake. We will not care about caching at this point, and the only optimization would be
@@ -200,7 +200,7 @@ The result is quite satisfying, and it scrolls smoothly without any optimization
 
 ![Exploring Tiled map in Gosu](images/11-gosu-tiled.png)
 
-### Generating Random Map With Perlin Noise
+## Generating Random Map With Perlin Noise
 
 In some cases random generated maps make all the difference. Worms and Diablo would probably be
 just average games if it wasn't for those always unique, procedurally generated maps.
@@ -282,19 +282,25 @@ Here we could go crazy if we had more different tiles to use. We could add deep 
 `0.0..0.1`, mountains at `0.9..0.95` and snow caps at `0.95..1.0`. And all this would have
 beautiful transitions.
 
+## Player Movement With Keyboard And Mouse
 
+We have learned to draw maps, but we need a protagonist to explore them. It will be a tank that you
+can move around the island with WASD keys and use your mouse to target it's gun at things. The tank
+will be drawn on top of our island map, and it will be above ground, but below tree layer, so it
+can sneak behind palm trees. That's as close to real deal as it gets!
 
+<<[02-warmup/player_movement.rb](code/02-warmup/player_movement.rb)
 
+Run it and stroll around the island. You can still move on water and into the darkness, away from
+the map itself, but we will handle it later.
 
+{lang="console",line-numbers="off"}
+~~~~~~~~
+$ ruby 02-warmup/player_movement.rb
+~~~~~~~~
 
+See that tank hiding between the bushes, ready to go in 8 directions and blow shit up with that
+precisely aimed double cannon?
 
-
-
-
-
-
-
-
-
-
+![Tank moving around and aiming guns](images/14-player-movement.png)
 

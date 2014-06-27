@@ -291,6 +291,14 @@ can sneak behind palm trees. That's as close to real deal as it gets!
 
 <<[02-warmup/player_movement.rb](code/02-warmup/player_movement.rb)
 
+Tank sprite is rendered in the middle of screen. It consists of three layers, body shadow, body and
+gun. Body and it's shadow are always rendered in same angle, one on top of another. The angle is
+determined by keys that are pressed. It supports 8 directions.
+
+Gun is a little bit different. It follows mouse cursor. To determine the angle we had to use some
+math. The formula to get angle in degrees is `arctan(delta_x / delta_y) * 180 / PI`. You can see it
+explained in more detail [on stackoverflow](http://stackoverflow.com/questions/7586063/how-to-calculate-the-angle-between-a-line-and-the-horizontal-axis).
+
 Run it and stroll around the island. You can still move on water and into the darkness, away from
 the map itself, but we will handle it later.
 
@@ -303,4 +311,78 @@ See that tank hiding between the bushes, ready to go in 8 directions and blow sh
 precisely aimed double cannon?
 
 ![Tank moving around and aiming guns](images/14-player-movement.png)
+
+## Game Coordinate System
+
+By now we may start realizing, that there is one key component missing in our designs. We have a
+virtual map, which is bigger than our screen space, and we should perform all calculations using
+that map, and only then cut out the required piece and render it in our game window.
+
+There are three different coordinate systems that have to map with each other:
+
+1. Game coordinates
+2. Viewport coordinates
+3. Screen coordinates
+
+![Coordinate systems](images/15-coordinate-systems.png)
+
+### Game Coordinates
+
+This is where all logic will happen. Player location, enemy locations, powerup locations - all this
+will have game coordinates, and it should have nothing to do with your screen position.
+
+### Viewport Coordinates
+
+Viewport is the position of virtual camera, that is "filming" world in action. Don't confuse it
+with screen coordinates, because viewport will not necessarily be mapped pixel to pixel to your game
+window. Imagine this: you have a huge world map, your player is standing in the middle, and game
+window displays the player while slowly zooming in. In this scenario, viewport is constantly
+shrinking, while game map stays the same, and game window also stays the same.
+
+### Screen Coordinates
+
+This is your game display, pixel by pixel. You will draw static information, like your
+[HUD](http://en.wikipedia.org/wiki/HUD_(video_gaming)) directly on it.
+
+### How To Put It All Together
+
+In our games we will want to separate game coordinates from viewport and screen as much as
+possible. Basically, we will program ourselves a "camera man" who will be busy following the
+action, zooming in and out, perhaps changing the view angle now and then.
+
+Let's implement a prototype that will allow us to navigate and zoom around a big map. We will only
+draw objects that are visible in viewport. Some math will be unavoidable, but in most cases it's pretty
+basic - that's the beauty of 2D games:
+
+<<[02-warmup/coordinate_system.rb](code/02-warmup/coordinate_system.rb)
+
+Run it, use WASD to navigate, up / down arrows to zoom and spacebar to reset the camera.
+
+{lang="console",line-numbers="off"}
+~~~~~~~~
+$ ruby 02-warmup/coordinate_system.rb
+~~~~~~~~
+
+It doesn't look impressive, but understanding the concept of different coordinate systems and being
+able to stitch them together is paramount to the success of our final product.
+
+![Prototype of separate coordinate systems](images/16-coordinates-prototype.png)
+
+Luckily for us, Gosu helps us by providing
+[`Gosu::Window#translate`](http://www.libgosu.org/rdoc/Gosu/Window.html#translate-instance_method)
+that handles camera offset,
+[`Gosu::Window#scale`](http://www.libgosu.org/rdoc/Gosu/Window.html#scale-instance_method) that
+aids zooming, and
+[`Gosu::Window#rotate`](http://www.libgosu.org/rdoc/Gosu/Window.html#rotate-instance_method) that
+was not used yet, but will be great for shaking the view to emphasize explosions.
+
+
+
+
+
+
+
+
+
+
 

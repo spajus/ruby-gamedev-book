@@ -8,3 +8,4 @@
 08_hello_sound.md
 09_warming_up.md
 10_prototype.md
+11_profiling.md

@@ -219,11 +219,3 @@ Time to go crazy!
 
 One thing should be bugging you at this point. FPS shows only 30, rather than 60. That means our
 prototype is slow. We will put it back to 60 FPS in next chapter.
-
-# Optimizing Game Performance
-
-TO BE CONTINUED
-
-
-
-

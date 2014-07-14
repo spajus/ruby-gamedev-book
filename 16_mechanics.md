@@ -267,3 +267,7 @@ Time to enjoy the results.
 
 ![Radar in action](images/39-radar.png)
 
+## Fading Sounds At Distance
+
+We have improved the visuals, but sound is still terrible. Like some superhero, you can hear
+everything that happens in the map, and it can drive you insane. We will fix that in a moment.

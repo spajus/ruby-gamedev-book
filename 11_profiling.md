@@ -223,8 +223,7 @@ class Map
 ~~~~~~~~
 
 This optimization yielded astounding results. We are now getting nearly stable 60 FPS even when
-profiling the code! Compare that to 2 FPS while profiling when we started. After removing profiling
-calls
+profiling the code! Compare that to 2 FPS while profiling when we started.
 
 ![Profiling results for `PlayState` after `Map#draw` optimization](images/23-play-profile-2.png)
 

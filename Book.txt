@@ -14,3 +14,4 @@
 14_damage.md
 15_ai.md
 16_mechanics.md
+17_partitioning.md

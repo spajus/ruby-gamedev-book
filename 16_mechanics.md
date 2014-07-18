@@ -19,9 +19,26 @@ hits me.
 9. Motion and firing mechanics seem clumsy.
 10. Map boundaries are visible when you come to the edge.
 11. Enemy tank movement patterns need polishing and improvement.
+12. Both my tank and enemies don't have any identity. Sometimes hard to distinguish who is who.
+13. No idea who has most kills. HUD with score and some state that displays score details would
+help.
+14. Would be great to have random powerups like health, extra damage.
+15. Explosions don't leave a trace.
+16. Tanks could leave trails.
+17. Dead tanks keep piling up and cluttering the map.
+18. Camera should be scouting ahead of you when you move, not dragging behind.
 
 This will keep us busy for a while, but in the end we will probably have something that will
 hopefully be able to entertain people for more than 3 minutes.
+
+Some items on this list are easy fixes. After playing around with Pixelmator for 15 minutes, I
+ended up with a bullet that is visible on both light and dark backgrounds:
+
+![Highly visible bullet](images/40-bullet.png)
+
+Motion and firing mechanics will either have to be tuned setting by setting, or rewritten from
+scratch. Implementing score system, powerups and improving enemy AI deserve to have chapters of
+their own. The rest can be taken care of right away.
 
 ## Drawing Water Beyond Map Boundaries
 
@@ -267,7 +284,453 @@ Time to enjoy the results.
 
 ![Radar in action](images/39-radar.png)
 
-## Fading Sounds At Distance
+## Dynamic Sound Volume And Panning
 
 We have improved the visuals, but sound is still terrible. Like some superhero, you can hear
 everything that happens in the map, and it can drive you insane. We will fix that in a moment.
+
+The idea is to make everything that happens further away from camera target sound less loud, until
+the sound fades away completely. To make player's experience more immersive, we will also take
+advantage of stereo speakers - sounds should appear to be coming from the right direction.
+
+Unfortunately,
+[`Gosu::Sample#play_pan`](http://www.libgosu.org/rdoc/Gosu/Sample.html#play_pan-instance_method)
+does not work as one would expect it to. If you play the sample with just a little panning, it
+completely cuts off the opposite channel, meaning that if you play a sample with pan level of `0.1`
+(10% to the right), you would expect to hear something in left speaker as well. The actual behavior
+is that sound plays through the right speaker pretty loudly, and if you increase pan level to, say,
+`0.7`, you will hear the sound through right speaker again, but it will be way more silent.
+
+To implement realistic stereo sounds that come through both speakers when panned, we need to play
+two samples with opposite `pan` level. After some experimenting, I discovered that fiddling with
+`pan` level makes things sound weird, while playing with volume produces softer, more subtle
+effect. This is what I ended up having:
+
+<<[09-polishing/misc/stereo_sample.rb](code/09-polishing/misc/stereo_sample.rb)
+
+`StereoSample` manages stereo playback of sample instances, and to avoid memory leaks, it has
+`cleanup` that scans all sample instances and removes samples that have finished playing. For this
+removal to work, we need to place a call to `StereoSample.cleanup` inside `PlayState#update`
+method.
+
+To determine correct pan and volume, we will create some helper methods in `Utils` module:
+
+{line-numbers="off"}
+~~~~~~~~
+module Utils
+  HEARING_DISTANCE = 1000.0
+  # ...
+  def self.volume(object, camera)
+    return 1 if object == camera.target
+    distance = Utils.distance_between(
+      camera.target.x, camera.target.y,
+      object.x, object.y)
+    distance = [(HEARING_DISTANCE - distance), 0].max
+    distance / HEARING_DISTANCE
+  end
+
+  def self.pan(object, camera)
+    return 0 if object == camera.target
+    pan = object.x - camera.target.x
+    sig = pan > 0 ? 1 : -1
+    pan = (pan % HEARING_DISTANCE) / HEARING_DISTANCE
+    if sig > 0
+      pan
+    else
+      -1 + pan
+    end
+  end
+
+  def self.volume_and_pan(object, camera)
+    [volume(object, camera), pan(object, camera)]
+  end
+end
+~~~~~~~~
+
+Apparently, having access to `Camera` is necessary for calculating sound volume and pan, so we will
+add `attr_accessor :camera` to `ObjectPool` class and assign it in `PlayState` constructor. You may
+wonder why we didn't use `Camera#target` right away. The answer is that camera can change it's
+target. E.g. when your tank dies, new instance will be generated when you respawn, so if all other
+objects would still have the reference to your old tank, guess what you would hear?
+
+Remastered `TankSounds` component is probably the most elaborate example of how `StereoSample` should be used:
+
+<<[09-polishing/entities/components/tank_sounds.rb](code/09-polishing/entities/components/tank_sounds.rb)
+
+And this is how static `ExplosionSounds` looks like:
+
+<<[09-polishing/entities/components/explosion_sounds.rb](code/09-polishing/entities/components/explosion_sounds.rb)
+
+After wiring everything so that sound components have access to `ObjectPool`, the rest is
+straightforward.
+
+## Giving Enemies Identity
+
+Wouldn't it be great if you could tell yourself apart from the enemies. Moreover, enemies could
+have names, so you would know which one is more aggressive or have, you know, personal issues with
+someone.
+
+To do that we need to ask the player to input a nickname, and choose some funny names for each
+enemy AI. Here is a nice list we will grab: http://www.paulandstorm.com/wha/clown-names/
+
+We first compile everything into a text filed called `names.txt`, that looks like this:
+
+{line-numbers="off",title="media/names.txt"}
+~~~~~~~~
+Strippy
+Boffo
+Buffo
+Drips
+...
+~~~~~~~~
+
+Now we need a class to parse the list and give out random names from it. We also want to limit name
+length to something that displays nicely.
+
+<<[09-polishing/misc/names.rb](code/09-polishing/misc/names.rb)
+
+Then we need to place those names somewhere. We could assign them to tanks, but think ahead - if
+our player and AI enemies will respawn, we should give names to inputs, because `Tank` is
+replaceable, driver is not. Well, it is, but let's not get too deep into it.
+
+For now we just add name parameter to `PlayerInput` and `AiInput` initializers, save it in `@name`
+instance variable, and then add `draw(viewport)` method to make it render below the tank:
+
+{line-numbers="off"}
+~~~~~~~~
+# 09-polishing/entities/components/player_input.rb
+class PlayerInput < Component
+  # Dark green
+  NAME_COLOR = Gosu::Color.argb(0xee084408)
+
+  def initialize(name, camera)
+    super(nil)
+    @name = name
+    @camera = camera
+  end
+  # ...
+  def draw(viewport)
+    @name_image ||= Gosu::Image.from_text(
+      $window, @name, Gosu.default_font_name, 20)
+    @name_image.draw(
+      x - @name_image.width / 2 - 1,
+      y + object.graphics.height / 2, 100,
+      1, 1, Gosu::Color::WHITE)
+    @name_image.draw(
+      x - @name_image.width / 2,
+      y + object.graphics.height / 2, 100,
+      1, 1, NAME_COLOR)
+  end
+  # ...
+end
+
+# 09-polishing/entities/components/ai_input.rb
+class AiInput < Component
+  # Dark red
+  NAME_COLOR = Gosu::Color.argb(0xeeb10000)
+
+  def initialize(name, object_pool)
+    super(nil)
+    @object_pool = object_pool
+    @name = name
+    @last_update = Gosu.milliseconds
+  end
+  # ...
+  def draw(viewport)
+    @motion.draw(viewport)
+    @gun.draw(viewport)
+    @name_image ||= Gosu::Image.from_text(
+      $window, @name, Gosu.default_font_name, 20)
+    @name_image.draw(
+      x - @name_image.width / 2 - 1,
+      y + object.graphics.height / 2, 100,
+      1, 1, Gosu::Color::WHITE)
+    @name_image.draw(
+      x - @name_image.width / 2,
+      y + object.graphics.height / 2, 100,
+      1, 1, NAME_COLOR)
+  end
+  # ...
+end
+~~~~~~~~
+
+We can see that generic `Input` class can be easily extracted, but let's follow the
+[Rule of three](http://en.wikipedia.org/wiki/Rule_of_three_(computer_programming)) and
+not do premature refactoring.
+
+Instead, run the game and enjoy dying from a bunch of mad clowns.
+
+![Identity makes a difference](images/41-identities.png)
+
+## Respawning Tanks And Removing Dead Ones
+
+To implement respawning we could use `Map#find_spawn_point` every time we wanted to respawn, but it
+may get slow, because it brute forces the map for random spots that are not water. We don't want
+our game to start freezing when tanks are respawning, so we will change how tank spawning works.
+Instead of looking for a new respawn point all the time, we will pre-generate several of them for
+reuse.
+
+{line-numbers="off"}
+~~~~~~~~
+class Map
+  # ...
+  def spawn_points(max)
+    @spawn_points = (0..max).map do
+      find_spawn_point
+    end
+    @spawn_points_pointer = 0
+  end
+
+  def spawn_point
+    @spawn_points[(@spawn_points_pointer += 1) % @spawn_points.size]
+  end
+  # ...
+end
+~~~~~~~~
+
+Here we have `spawn_points` method that prepares a number of spawn points and stores them in
+`@spawn_points` instance variable, and `spawn_point` method that cycles through all `@spawn_points`
+and returns them one by one. `find_spawn_point` can now become `private`.
+
+We will use `Map#spawn_points` when initializing `PlayState` and pass `ObjectPool` to `PlayerInput`
+(`AiInput` already has it), so that we will be able to call `@object_pool.map.spawn_point` when needed.
+
+{line-numbers="off"}
+~~~~~~~~
+class PlayState < GameState
+  # ...
+  def initialize
+    # ...
+    @map = Map.new(@object_pool)
+    @map.spawn_points(15)
+    @tank = Tank.new(@object_pool,
+      PlayerInput.new('Player', @camera, @object_pool))
+    # ...
+    10.times do |i|
+      Tank.new(@object_pool, AiInput.new(
+        @names.random, @object_pool))
+    end
+  end
+  # ...
+end
+~~~~~~~~
+
+When tank dies, we want it to stay dead for 5 seconds and then respawn in one of our predefined
+spawn points. We will achieve that by adding `respawn` method and calling it in `PlayerInput#update` and
+`AiInput#update` if tank is dead.
+
+{line-numbers="off"}
+~~~~~~~~
+# 09-polishing/entities/components/player_input.rb
+class PlayerInput < Component
+  # ...
+  def update
+    return respawn if object.health.dead?
+    # ...
+  end
+  # ...
+  private
+
+  def respawn
+    if object.health.should_respawn?
+      object.health.restore
+      object.x, object.y = @object_pool.map.spawn_point
+      @camera.x, @camera.y = x, y
+      PlayerSounds.respawn(object, @camera)
+    end
+  end
+  # ...
+end
+
+# 09-polishing/entities/components/ai_input.rb
+class AiInput < Component
+  # ...
+  def update
+    return respawn if object.health.dead?
+    # ...
+  end
+  # ...
+  private
+
+  def respawn
+    if object.health.should_respawn?
+      object.health.restore
+      object.x, object.y = @object_pool.map.spawn_point
+      PlayerSounds.respawn(object, @object_pool.camera)
+    end
+  end
+end
+~~~~~~~~
+
+We need some changes in `TankHealth` class too:
+
+{line-numbers="off"}
+~~~~~~~~
+class TankHealth < Health
+  RESPAWN_DELAY = 5000
+  # ...
+  def should_respawn?
+    Gosu.milliseconds - @death_time > RESPAWN_DELAY
+  end
+  # ...
+  def after_death
+    @death_time = Gosu.milliseconds
+    # ...
+  end
+end
+
+class Health < Component
+  # ...
+  def restore
+    @health = @initial_health
+    @health_updated = true
+  end
+  # ...
+end
+~~~~~~~~
+
+It shouldn't be hard to put everything together and enjoy the never ending gameplay.
+
+You may have noticed that we also added a sound that will be played when player respawns. A nice
+"whoosh".
+
+<<[09-polishing/entities/components/player_sounds.rb](code/09-polishing/entities/components/player_sounds.rb)
+
+## Displaying Explosion Damage Trails
+
+When something blows up, you expect it to leave a trail, right? In our case explosions disappear as
+if nothing has ever happened, and we just can't leave it like this. Let's introduce `Damage` game
+object
+that will be responsible for displaying explosion residue on sand and grass:
+
+<<[09-polishing/entities/damage.rb](code/09-polishing/entities/damage.rb)
+
+`Damage` tracks it's instances and starts removing old ones when `MAX_INSTANCES` are reached.
+Without this optimization, the game would get increasingly slower every time somebody shoots.
+
+We have also added a new game object trait - `effect?` returns true on `Damage` and `Explosion`,
+false on `Tank`, `Tree`, `Box` and `Bullet`. That way we can filter out effects when querying
+`ObjectPool#nearby` for collisions or enemies.
+
+<<[09-polishing/entities/object_pool.rb](code/09-polishing/entities/object_pool.rb)
+
+When it comes to rendering graphics, to make an impression of randomness, we will cycle through several different damage images and draw
+them rotated:
+
+<<[09-polishing/entities/components/damage_graphics.rb](code/09-polishing/entities/components/damage_graphics.rb)
+
+`Explosion` will be responsible for creating `Damage` instances on solid ground, just before
+explosion animation starts:
+
+{line-numbers="off"}
+~~~~~~~~
+class Explosion < GameObject
+  def initialize(object_pool, x, y)
+    # ...
+    if @object_pool.map.can_move_to?(x, y)
+      Damage.new(@object_pool, @x, @y)
+    end
+    # ...
+  end
+  # ...
+end
+~~~~~~~~
+
+And this is how the result looks like:
+
+![Damaged battlefield](images/42-damage.png)
+
+## Making Camera Look Ahead
+
+One of the most annoying things with current state of prototype is that `Camera` is dragging
+behind instead of showing what is in the direction you are moving. To fix the issue, we need to
+change the way how `Camera` moves around. First we need to know where `Camera` wants to be. We will
+use `Utils.point_at_distance` to choose a spot ahead of the `Tank`. Then, `Camera#update` needs to be rewritten, so `Camera` can dynamically adjust to it's desired
+spot. Here are the changes:
+
+{line-numbers="off"}
+~~~~~~~~
+class Camera
+  # ...
+  def desired_spot
+    if @target.physics.moving?
+      Utils.point_at_distance(
+        @target.x, @target.y,
+        @target.direction,
+        @target.physics.speed.ceil * 25)
+    else
+      [@target.x, @target.y]
+    end
+  end
+  # ...
+  def update
+    des_x, des_y = desired_spot
+    shift = Utils.adjust_speed(
+      @target.physics.speed).floor + 1
+    if @x < des_x
+      if des_x - @x < shift
+        @x = des_x
+      else
+        @x += shift
+      end
+    elsif @x > des_x
+      if @x - des_x < shift
+        @x = des_x
+      else
+        @x -= shift
+      end
+    end
+    if @y < des_y
+      if des_y - @y < shift
+        @y = des_y
+      else
+        @y += shift
+      end
+    elsif @y > des_y
+      if @y - des_y < shift
+        @y = des_y
+      else
+        @y -= shift
+      end
+    end
+    # ...
+  end
+  # ...
+end
+~~~~~~~~
+
+It wouldn't win code style awards, but it does the job. Game is now much more playable.
+
+## Reviewing The Changes
+
+Let's get back to our list of improvements to see what we have done:
+
+1. Enemy tanks do not respawn.
+2. Random maps are boring and lack detail, could use more tiles or random environment objects.
+3. Bullets are hard to see on green surface.
+4. Hard to tell where enemies are coming from, radar would help.
+5. Sounds play at full volume even when something happens across The whole map.
+6. My tank should respawn after it's dead.
+7. Map boundaries are visible when you come to the edge.
+8. Both my tank and enemies don't have any identity. Sometimes hard to distinguish who is who.
+9. Explosions don't leave a trace.
+10. Dead tanks keep piling up and cluttering the map.
+11. Camera should be scouting ahead of you when you move, not dragging behind.
+
+Not bad for a start. This is what we still need to cover in next couple of chapters:
+
+1. Enemy tanks shoot at my current location, not at where I will be when bullet
+hits me.
+2. Enemy tanks don't avoid collisions.
+3. Enemy tank movement patterns need polishing and improvement.
+4. No idea who has most kills. HUD with score and some state that displays score details would
+5. Would be great to have random powerups like health, extra damage.
+6. Motion and firing mechanics seem clumsy.
+help.
+7. Tanks could leave trails.
+
+I will add "Optimize ObjectPool performance", because game starts slowing down when too many
+objects are added to the pool, and profiling shows that `Array#select`, which is the heart of
+`ObjectPool#nearby`, is the main cause. Speed is one of most important features of any game, so
+let's not hesitate to improve it.
+

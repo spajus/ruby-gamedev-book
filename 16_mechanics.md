@@ -27,6 +27,7 @@ help.
 16. Tanks could leave trails.
 17. Dead tanks keep piling up and cluttering the map.
 18. Camera should be scouting ahead of you when you move, not dragging behind.
+19. Bullets seem to accelerate.
 
 This will keep us busy for a while, but in the end we will probably have something that will
 hopefully be able to entertain people for more than 3 minutes.
@@ -640,6 +641,70 @@ And this is how the result looks like:
 
 ![Damaged battlefield](images/42-damage.png)
 
+## Debugging Bullet Physics
+
+When playing the game, there is a feeling that bullets start out slow when fired and gain speed as time goes.
+Let's review `BulletPhysics#update` and think why this is happening:
+
+{line-numbers="off"}
+~~~~~~~~
+class BulletPhysics < Component
+  # ...
+  def update
+    fly_speed = Utils.adjust_speed(object.speed)
+    fly_distance = (Gosu.milliseconds - object.fired_at) *
+      0.001 * fly_speed / 2
+    object.x, object.y = point_at_distance(fly_distance)
+    check_hit
+    object.explode if arrived?
+  end
+  # ...
+end
+~~~~~~~~
+
+Flaw here is very obvious. `Gosu.milliseconds - object.fired_at` will be increasingly bigger as
+time goes, thus increasing `fly_distance`. The fix is straightforward - we want to calculate
+`fly_distance` using time passed between calls to `BulletPhysics#update`, like this:
+
+{line-numbers="off"}
+~~~~~~~~
+class BulletPhysics < Component
+  # ...
+  def update
+    fly_speed = Utils.adjust_speed(object.speed)
+    now = Gosu.milliseconds
+    @last_update ||= object.fired_at
+    fly_distance = (now - @last_update) * 0.001 * fly_speed
+    object.x, object.y = point_at_distance(fly_distance)
+    @last_update = now
+    check_hit
+    object.explode if arrived?
+  end
+  # ...
+end
+~~~~~~~~
+
+But if you would run the game now, bullets would fly so slow, that you would feel like Neo in The
+Matrix. To fix that, we will have to tell our tank to fire bullets a little faster.
+
+{line-numbers="off"}
+~~~~~~~~
+class Tank < GameObject
+  # ...
+  def shoot(target_x, target_y)
+    if can_shoot?
+      @last_shot = Gosu.milliseconds
+      Bullet.new(object_pool, @x, @y, target_x, target_y)
+        .fire(self, 1500) # Old value was 100
+    end
+  end
+  # ...
+end
+~~~~~~~~
+
+Now bullets fly like they are supposed to. I can only wonder why haven't I noticed this bug in the
+very beginning.
+
 ## Making Camera Look Ahead
 
 One of the most annoying things with current state of prototype is that `Camera` is dragging
@@ -716,6 +781,7 @@ Let's get back to our list of improvements to see what we have done:
 9. Explosions don't leave a trace.
 10. Dead tanks keep piling up and cluttering the map.
 11. Camera should be scouting ahead of you when you move, not dragging behind.
+12. Bullets seem to accelerate.
 
 Not bad for a start. This is what we still need to cover in next couple of chapters:
 

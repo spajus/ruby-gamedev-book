@@ -16,3 +16,4 @@
 16_mechanics.md
 17_partitioning.md
 18_powerups.md
+19_hud.md

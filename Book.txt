@@ -16,4 +16,5 @@
 16_mechanics.md
 17_partitioning.md
 18_powerups.md
-19_hud.md
+19_stats.md
+20_advanced_ai.md

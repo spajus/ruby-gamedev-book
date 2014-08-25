@@ -190,6 +190,118 @@ different values, but we certainly have to do bigger changes than that.
 On the other hand, "observe AI in action, tweak, repeat" cycle proved to be very effective, I will
 definitely use this technique in all my future games.
 
+To make visual debugging easier, build yourself some tooling. One way to do it is to have global
+`$debug` variable which you can toggle by pressing some button:
+
+{line-numbers="off"}
+~~~~~~~~
+class PlayState < GameState
+  # ...
+  def button_down(id)
+    # ...
+    if id == Gosu::KbF1
+      $debug = !$debug
+    end
+    # ...
+  end
+  # ...
+end
+~~~~~~~~
+
+Then add extra drawing instructions to your objects and their components. For example, this will
+make `Tank` display it's current `TankMotionState` implementation class beneath it:
+
+{line-numbers="off"}
+~~~~~~~~
+class TankMotionFSM
+  # ...
+  def set_state(state)
+    # ...
+    if $debug
+      @image = Gosu::Image.from_text(
+          $window, state.class.to_s,
+          Gosu.default_font_name, 18)
+    end
+  end
+  # ...
+  def draw(viewport)
+    if $debug
+      @image && @image.draw(
+        @object.x - @image.width / 2,
+        @object.y + @object.graphics.height / 2 -
+        @image.height, 100)
+    end
+  end
+  # ...
+end
+~~~~~~~~
+
+To mark tank's desired gun angle as blue line and actual gun angle as red line, you can do this:
+
+{line-numbers="off"}
+~~~~~~~~
+class AiGun
+  # ...
+  def draw(viewport)
+    if $debug
+      color = Gosu::Color::BLUE
+      x, y = @object.x, @object.y
+      t_x, t_y = Utils.point_at_distance(x, y, @desired_gun_angle,
+                                         BulletPhysics::MAX_DIST)
+      $window.draw_line(x, y, color, t_x, t_y, color, 1001)
+      color = Gosu::Color::RED
+      t_x, t_y = Utils.point_at_distance(x, y, @object.gun_angle,
+                                         BulletPhysics::MAX_DIST)
+      $window.draw_line(x, y, color, t_x, t_y, color, 1000)
+    end
+  end
+  # ...
+end
+~~~~~~~~
+
+Finally, you can automatically mark collision box corners on your graphics components. Let's take
+`BoxGraphics` for example:
+
+{line-numbers="off"}
+~~~~~~~~
+# 13-advanced-ai/misc/utils.rb
+module Utils
+  # ...
+  def self.mark_corners(box)
+    i = 0
+    box.each_slice(2) do |x, y|
+      color = DEBUG_COLORS[i]
+      $window.draw_triangle(
+        x - 3, y - 3, color,
+        x,     y,     color,
+        x + 3, y - 3, color,
+        100)
+      i = (i + 1) % 4
+    end
+  end
+  # ...
+end
+
+# 13-advanced-ai/entities/components/box_graphics.rb
+class BoxGraphics < Component
+  # ..
+  def draw(viewport)
+    @box.draw_rot(x, y, 0, object.angle)
+    Utils.mark_corners(object.box) if $debug
+  end
+  # ...
+end
+~~~~~~~~
+
+As a developer, you can make yourself see nearly everything you want, make use of it.
+
+![Visual debugging of AI behavior](images/54-visual-debugging.png)
+
+Although it hurts the framerate a little, it is very useful when building not only AI, but the
+rest of the game too. Using this visual debugging together with Demo mode, you can tweak all the AI
+values to make it shoot more often, fight better, and be more agile. We won't go through this
+minor tuning, but you can find the changes by [viewing changes introduced in `13-advanced-ai`](https://github.com/spajus/ruby-gamedev-book-examples/compare/8727db2...0e3c926).
+
 ## Making AI Collect Powerups
 
 To even out the odds, we have to make AI seek powerups when they are required. The logic behind it
@@ -338,8 +450,142 @@ This small change tells AI to pick up health while fleeing. The interesting part
 picks up `RepairPowerup`, it's health gets fully restored and AI should switch back to
 `TankFightingState`. This simple thing is a major improvement in AI behavior.
 
-## Getting Unstuck
+## Evading Collisions And Getting Unstuck
 
-TODO
+While observing AI navigation, it was noticeable that tanks often got stuck, even in simple
+situations, like driving into a tree and hitting it repeatedly for a dozen of seconds. To reduce
+the number of such occasions, we will introduce `TankNavigatingState`, which would help avoid
+collisions, and `TankStuckState`, which would be responsible for driving out of dead ends as
+quickly as possible.
 
+To implement these states, we need to have a way to tell if tank can go forward and a way of
+getting a direction which is not blocked by other objects. Let's add a couple of methods to
+`AiVision`:
+
+{line-numbers="off"}
+~~~~~~~~
+class AiVision
+  # ...
+  def can_go_forward?
+    in_front = Utils.point_at_distance(
+      *@viewer.location, @viewer.direction, 40)
+    @object_pool.map.can_move_to?(*in_front) &&
+      @object_pool.nearby_point(*in_front, 40, @viewer)
+        .reject { |o| o.is_a? Powerup }.empty?
+  end
+
+  def closest_free_path(away_from = nil)
+    paths = []
+    5.times do |i|
+      if paths.any?
+        return farthest_from(paths, away_from)
+      end
+      radius = 55 - i * 5
+      range_x = range_y = [-radius, 0, radius]
+      range_x.shuffle.each do |x|
+        range_y.shuffle.each do |y|
+          x = @viewer.x + x
+          y = @viewer.y + y
+          if @object_pool.map.can_move_to?(x, y) &&
+              @object_pool.nearby_point(x, y, radius, @viewer)
+                .reject { |o| o.is_a? Powerup }.empty?
+            if away_from
+              paths << [x, y]
+            else
+              return [x, y]
+            end
+          end
+        end
+      end
+    end
+    false
+  end
+
+  alias :closest_free_path_away_from :closest_free_path
+  # ...
+  private
+
+  def farthest_from(paths, away_from)
+    paths.sort do |p1, p2|
+      Utils.distance_between(*p1, *away_from) <=>
+        Utils.distance_between(*p2, *away_from)
+    end.first
+  end
+  # ...
+end
+~~~~~~~~
+
+`AiVision#can_go_forward?` tells if tank can move ahead, and `AiVision#closest_free_path` finds a
+point where tank can move without obstacles. You can also call
+`AiVision#closest_free_path_away_from` and provide coordinates you are trying to get away from.
+
+We will use `closest_free_path` methods in newly implemented tank motion states, and
+`can_go_forward?` in `TankMotionFSM`, to make a decision when to jump into navigating or stuck
+state.
+
+Those new states are nothing fancy:
+
+<<[13-advanced-ai/entities/components/ai/tank_navigating_state.rb](code/13-advanced-ai/entities/components/ai/tank_navigating_state.rb)
+
+`TankNavigatingState` simply chooses a random free path, changes direction to it and keeps driving.
+
+<<[13-advanced-ai/entities/components/ai/tank_stuck_state.rb](code/13-advanced-ai/entities/components/ai/tank_navigating_state.rb)
+
+`TankStuckState` is nearly the same, but it keeps driving away from `@stuck_at` point, which is set
+by `TankMotionFSM` upon transition to this state.
+
+{line-numbers="off"}
+~~~~~~~~
+class TankMotionFSM
+  STATE_CHANGE_DELAY = 500
+  LOCATION_CHECK_DELAY = 5000
+
+  def initialize(object, vision, gun)
+    # ...
+    @stuck_state = TankStuckState.new(object, vision, gun)
+    @navigating_state = TankNavigatingState.new(object, vision)
+    set_state(@roaming_state)
+  end
+  # ...
+  def choose_state
+    unless @vision.can_go_forward?
+      unless @current_state == @stuck_state
+        set_state(@navigating_state)
+      end
+    end
+    # Keep unstucking itself for a while
+    change_delay = STATE_CHANGE_DELAY
+    if @current_state == @stuck_state
+      change_delay *= 5
+    end
+    now = Gosu.milliseconds
+    return unless now - @last_state_change > change_delay
+    if @last_location_update.nil?
+      @last_location_update = now
+      @last_location = @object.location
+    end
+    if now - @last_location_update > LOCATION_CHECK_DELAY
+      puts "checkin location"
+      unless @last_location.nil? || @current_state.waiting?
+        if Utils.distance_between(*@last_location, *@object.location) < 20
+          set_state(@stuck_state)
+          @stuck_state.stuck_at = @object.location
+          return
+        end
+      end
+      @last_location_update = now
+      @last_location = @object.location
+    end
+    # ...
+  end
+  # ...
+end
+~~~~~~~~
+
+What this does is automatically change state to navigating when tank is about to hit an obstacle.
+It also tracks tank location, and if tank hasn't moved 20 pixels away from it's original direction
+for 5 seconds, it enters `TankStuckState`, which deliberately tries to navigate away from the
+`stock_at` spot.
+
+AI navigation has just got significantly better, and it didn't take that many changes.
 

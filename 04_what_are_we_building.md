@@ -88,10 +88,3 @@ and provide substantial amount of experience.
 We will use a subset of [these gorgeous graphics](http://www.praire-chicken.com/chabull/tr.html)
 which are [available on opengameart.org](http://opengameart.org/users/chabull), generously provided
 by [Csaba Felvegi](https://www.google.com/search?q=Csaba+Felvegi).
-
-## Publishing The Game On Steam
-
-When we will have a working, polished game ready, we will submit it to
-[Steam Greenlight](http://steamcommunity.com/greenlight) and hope it gets accepted. If it does,
-the book will also cover basics of publishing games on Steam platform. It's fun to build things you
-love, but it's even more enjoyable when you get paid for it!

@@ -64,9 +64,8 @@ in case two shapes overlap, one with higher `z` value will be drawn on top.
 ## Main Loop
 
 The heart of Gosu library is the [main loop](https://github.com/jlnr/gosu/wiki/Window-Main-Loop)
-that happens in [`Gosu::Window`](http://www.libgosu.org/rdoc/Gosu/Window.html).
-
-TODO write more about main loop
+that happens in [`Gosu::Window`](http://www.libgosu.org/rdoc/Gosu/Window.html). It is explained
+fairly well in Gosu wiki, so we will not be discussing it here.
 
 ## Moving Things With Keyboard
 

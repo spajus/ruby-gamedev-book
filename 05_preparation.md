@@ -54,8 +54,8 @@ $ cd ~/gamedev
 $ git clone git@github.com:spajus/ruby-gamedev-book-examples.git
 ~~~~~~~~
 
-Complete source code for the game that was built while writing this book is also available on
-GitHub. TODO add links when they are available.
+The source code of final product can be found at
+[https://github.com/spajus/tank_island](https://github.com/spajus/tank_island)
 
 # Other Tools
 

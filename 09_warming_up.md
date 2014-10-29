@@ -71,7 +71,7 @@ easiest way is to clone it on your computer:
 
 {lang="console",line-numbers="off"}
 ~~~~~~~~
-$ git clone
+$ git clone git@github.com:spajus/gosu-texture-packer.git
 ~~~~~~~~
 
 Let's examine the main idea behind this gem. Here is a slightly simplified version that does

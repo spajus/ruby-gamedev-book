@@ -166,7 +166,7 @@ position on map, so the game will know where you are targeting your guns.
 
 Most of our tank code will be taken from "Player Movement With Keyboard And Mouse":
 
-<<[03-prototype/entities/camera.rb](code/03-prototype/entities/camera.rb)
+<<[03-prototype/entities/tank.rb](code/03-prototype/entities/tank.rb)
 
 `Tank` has to be aware of the `Map` to check where it's moving, and it uses `Camera` to find out
 where to aim the guns. When it `shoot`s, it produces instances of `Bullet`, that are simply

@@ -307,7 +307,7 @@ the map itself, but we will handle it later.
 $ ruby 02-warmup/player_movement.rb
 ~~~~~~~~
 
-See that tank hiding between the bushes, ready to go in 8 directions and blow shit up with that
+See that tank hiding between the bushes, ready to go in 8 directions and blow things up with that
 precisely aimed double cannon?
 
 ![Tank moving around and aiming guns](images/14-player-movement.png)

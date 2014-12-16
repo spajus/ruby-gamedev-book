@@ -73,7 +73,7 @@ I would like to thank [Julian Raschke](https://github.com/jlnr) for creating and
 would not exist without your enormous contribution to Ruby game development scene.
 
 Shout out goes to [Shawn Anderson](https://github.com/shawn42), creator of
-[Gamebox](https://github.com/shawn42/gamebox). Thank you for moral support and encouragement.
+[Gamebox](http://gamebox.io). Thank you for moral support and encouragement.
 Studying Gamebox source code taught me many things about Gosu and game development.
 
 You can find Julian, Shawn and more game development enthusiasts in #gosu on

@@ -1,7 +1,7 @@
 # Preparing The Tools
 
 While writing this book, I will be using Mac OS X (10.9), but it should be possible to run all the
-exampls on other operating systems too.
+examples on other operating systems too.
 
 Gosu Wiki has "Getting Started" pages for
 [Mac](https://github.com/jlnr/gosu/wiki/Getting-Started-on-OS-X),

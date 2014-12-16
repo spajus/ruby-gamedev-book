@@ -35,7 +35,7 @@ left to right most of the time.
 Going with Top Down view will give us a chance to create our game world as open for exploration as
 possible, while having simple graphics and movement mechanics. Sounds like the best choice for us.
 
-Since you are probably as bad in drawing things as I am, you could still wonder how we are going
+If you are as bad at drawing things as I am, you could still wonder how we are going
 to get our graphics. Thankfully, there is this [opengameart.org](http://opengameart.org). It's like
 GitHub of game media, we will surely find something there. It also contains audio samples and
 tracks.
